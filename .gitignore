@@ -1,0 +1,44 @@
+# .gitignore
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Ignore libraries
+*.lib
+*.a
+*.so
+*.o
+
+# Ignore Jupyter Notebook
+.ipynb_checkpoints
+
+# Ignore Visual Studio temporary files, build results, and
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Ignore SQLite database files
+*.sqlite3
+*.sqlite3-journal
+
+# Ignore PyCharm temporary files
+.idea/
+
+# Ignore Django migrations
+*/migrations/*
+
+# Ignore the virtual environment directory
+env/
+
+
+# Ignorable assets
+assets/full_rutbab_blocks
