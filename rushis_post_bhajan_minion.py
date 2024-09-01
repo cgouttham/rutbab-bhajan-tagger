@@ -53,6 +53,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print(f"[bold cyan]Running audio analysis with the following parameters:[/bold cyan]")
+    print(f"Audio file: {args.file}")
+    print(f"Minimum duration of silence between bhajans: {args.duration} seconds")
+    print(f"Percentile to use as the threshold for silence: {args.percentile}%")
+    print(f"Minimum time difference between start times: {args.time_diff} seconds")
+    print(f"Pretty print start times: {'Yes' if args.pretty_print else 'No'}")
+    print(f"YouTube video ID: {args.youtube if args.youtube else 'Not provided'}")
+
     percentile_values, silence_starts = analyze_audio(args.file, args.duration, args.percentile, args.time_diff)
 
     # Create a table for the percentiles
