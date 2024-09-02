@@ -4,9 +4,24 @@ import numpy as np
 from datetime import timedelta
 from rich import print
 from rich.table import Table
-import youtube_dl
+from yt_dlp import YoutubeDL
+from tqdm import tqdm
+import os
+
+class TqdmUpTo(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)
+
 
 def download_audio_from_youtube(video_id, output_folder="."):
+    def my_hook(d):
+        if d['status'] == 'finished':
+            print('Done downloading, now converting ...')
+        elif d['status'] == 'downloading':
+            print(f"Downloading... {d['_percent_str']}")
+
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': f'{output_folder}/{video_id}.%(ext)s',
@@ -16,11 +31,12 @@ def download_audio_from_youtube(video_id, output_folder="."):
             'preferredquality': '192',
         }],
         'prefer_ffmpeg': True,
+        'progress_hooks': [my_hook],
     }
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         ydl.download([f'http://www.youtube.com/watch?v={video_id}'])
-
+               
 def analyze_audio(audio_file, min_duration, percentile, time_diff):
     # Load the audio file
     audio_data, sampling_rate = librosa.load(audio_file)
@@ -60,7 +76,7 @@ def analyze_audio(audio_file, min_duration, percentile, time_diff):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze an audio file and find potential start times of bhajans.')
-    parser.add_argument('-f', '--file', type=str, required=True, help='Path to the audio file')
+    parser.add_argument('-f', '--file', type=str, help='Path to the audio file')
     parser.add_argument('-y', '--youtube', type=str, help='YouTube video ID to analyze')
     parser.add_argument('--from-youtube', action='store_true', help='Download the audio file from YouTube before analyzing')
     parser.add_argument('-d', '--duration', type=float, default=2.0, help='Minimum duration of silence between bhajans in seconds')
@@ -78,10 +94,15 @@ if __name__ == "__main__":
     print(f"Pretty print start times: {'Yes' if args.pretty_print else 'No'}")
     print(f"YouTube video ID: {args.youtube if args.youtube else 'Not provided'}")
 
+    if not args.from_youtube and not args.file:
+        raise ValueError("You must provide either a local file with --file or a YouTube video ID with --from-youtube and --youtube")
+
     if args.from_youtube:
+        output_folder = "assets/youtube_downloads"
+        os.makedirs(output_folder, exist_ok=True)   # create directory if it does not exist
         print(f"[bold cyan]Downloading audio from YouTube video ID: {args.youtube}[/bold cyan]")
-        download_audio_from_youtube(args.youtube)
-        args.file = f"{args.youtube}.mp3"
+        download_audio_from_youtube(args.youtube, output_folder=output_folder)
+        args.file = f"{output_folder}/{args.youtube}.mp3"
 
     percentile_values, silence_starts = analyze_audio(args.file, args.duration, args.percentile, args.time_diff)
 

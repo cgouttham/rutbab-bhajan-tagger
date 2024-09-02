@@ -1,4 +1,5 @@
 audioread==3.0.1
+Brotli==1.1.0
 certifi==2024.8.30
 cffi==1.17.0
 charset-normalizer==3.3.2
@@ -11,12 +12,14 @@ llvmlite==0.43.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
 msgpack==1.0.8
+mutagen==1.47.0
 numba==0.60.0
 numpy==2.0.2
 packaging==24.1
 platformdirs==4.2.2
 pooch==1.8.2
 pycparser==2.22
+pycryptodomex==3.20.0
 Pygments==2.18.0
 requests==2.32.3
 rich==13.8.0
@@ -26,6 +29,9 @@ soundfile==0.12.1
 soxr==0.5.0.post1
 threadpoolctl==3.5.0
 timedelta==2020.12.3
+tqdm==4.66.5
 typing_extensions==4.12.2
 urllib3==2.2.2
+websockets==13.0.1
 youtube-dl==2021.12.17
+yt-dlp==2024.8.6
