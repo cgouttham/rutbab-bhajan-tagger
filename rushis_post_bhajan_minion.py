@@ -6,6 +6,7 @@ from rich import print
 from rich.table import Table
 from yt_dlp import YoutubeDL
 from tqdm import tqdm
+from urllib.parse import urlparse, parse_qs
 import os
 
 class TqdmUpTo(tqdm):
@@ -14,6 +15,20 @@ class TqdmUpTo(tqdm):
             self.total = tsize
         self.update(b * bsize - self.n)
 
+def extract_video_id_from_url(url):
+    """
+    Parses URL and returns YouTube Video ID
+    """
+    parsed_url = urlparse(url)
+    if parsed_url.query:
+        parsed_query_string = parse_qs(parsed_url.query)
+        if "v" in parsed_query_string:
+            return parsed_query_string["v"][0]
+    elif parsed_url.path:
+        path_parts = parsed_url.path.split("/")
+        if path_parts and path_parts[1]:
+            return path_parts[1]
+    return None
 
 def download_audio_from_youtube(video_id, output_folder="."):
     def my_hook(d):
@@ -77,7 +92,7 @@ def analyze_audio(audio_file, min_duration, percentile, time_diff):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze an audio file and find potential start times of bhajans.')
     parser.add_argument('-f', '--file', type=str, help='Path to the audio file')
-    parser.add_argument('-y', '--youtube', type=str, help='YouTube video ID to analyze')
+    parser.add_argument('-y', '--youtube', type=str, help='YouTube video ID or URL to analyze')
     parser.add_argument('--from-youtube', action='store_true', help='Download the audio file from YouTube before analyzing')
     parser.add_argument('-d', '--duration', type=float, default=2.0, help='Minimum duration of silence between bhajans in seconds')
     parser.add_argument('-p', '--percentile', type=int, default=15, help='Percentile to use as the threshold for silence')
@@ -100,9 +115,12 @@ if __name__ == "__main__":
     if args.from_youtube:
         output_folder = "assets/youtube_downloads"
         os.makedirs(output_folder, exist_ok=True)   # create directory if it does not exist
-        print(f"[bold cyan]Downloading audio from YouTube video ID: {args.youtube}[/bold cyan]")
-        download_audio_from_youtube(args.youtube, output_folder=output_folder)
-        args.file = f"{output_folder}/{args.youtube}.mp3"
+        video_id = extract_video_id_from_url(args.youtube)
+        if video_id is None:
+            raise ValueError("Invalid YouTube URL or video ID")
+        print(f"[bold cyan]Downloading audio from YouTube video ID: {video_id}[/bold cyan]")
+        download_audio_from_youtube(video_id, output_folder=output_folder)
+        args.file = f"{output_folder}/{video_id}.mp3"
 
     percentile_values, silence_starts = analyze_audio(args.file, args.duration, args.percentile, args.time_diff)
 
@@ -131,5 +149,5 @@ if __name__ == "__main__":
 
         # If the YouTube flag is present, print the YouTube URL
         if args.youtube:
-            youtube_link = f"https://www.youtube.com/watch?v={args.youtube}&t={start_time_seconds}s"
+            youtube_link = f"https://www.youtube.com/watch?v={video_id}&t={start_time_seconds}s"
             print(f"[blue]{youtube_link}[/blue]")
