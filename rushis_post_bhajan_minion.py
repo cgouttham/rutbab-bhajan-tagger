@@ -18,9 +18,9 @@ class TqdmUpTo(tqdm):
 def download_audio_from_youtube(video_id, output_folder="."):
     def my_hook(d):
         if d['status'] == 'finished':
-            print('Done downloading, now converting ...')
+            print('\nDone downloading, now converting ...')
         elif d['status'] == 'downloading':
-            print(f"Downloading... {d['_percent_str']}")
+            print(f"Downloading... {d['_percent_str']}", end='\r')
 
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--duration', type=float, default=2.0, help='Minimum duration of silence between bhajans in seconds')
     parser.add_argument('-p', '--percentile', type=int, default=15, help='Percentile to use as the threshold for silence')
     parser.add_argument('-t', '--time_diff', type=float, default=60.0, help='Minimum time difference between start times in seconds')
-    parser.add_argument('-pp', '--pretty_print', action='store_true', help='Print start times with "Bhajan X: " prefix')
+    parser.add_argument('-pp', '--pretty_print', action='store_true', default=True, help='Print start times with "Bhajan X: " prefix')
 
     args = parser.parse_args()
 
