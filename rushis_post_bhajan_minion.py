@@ -4,6 +4,22 @@ import numpy as np
 from datetime import timedelta
 from rich import print
 from rich.table import Table
+import youtube_dl
+
+def download_audio_from_youtube(video_id, output_folder="."):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': f'{output_folder}/{video_id}.%(ext)s',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'prefer_ffmpeg': True,
+    }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([f'http://www.youtube.com/watch?v={video_id}'])
 
 def analyze_audio(audio_file, min_duration, percentile, time_diff):
     # Load the audio file
@@ -45,11 +61,12 @@ def analyze_audio(audio_file, min_duration, percentile, time_diff):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Analyze an audio file and find potential start times of bhajans.')
     parser.add_argument('-f', '--file', type=str, required=True, help='Path to the audio file')
+    parser.add_argument('-y', '--youtube', type=str, help='YouTube video ID to analyze')
+    parser.add_argument('--from-youtube', action='store_true', help='Download the audio file from YouTube before analyzing')
     parser.add_argument('-d', '--duration', type=float, default=2.0, help='Minimum duration of silence between bhajans in seconds')
     parser.add_argument('-p', '--percentile', type=int, default=15, help='Percentile to use as the threshold for silence')
     parser.add_argument('-t', '--time_diff', type=float, default=60.0, help='Minimum time difference between start times in seconds')
     parser.add_argument('-pp', '--pretty_print', action='store_true', help='Print start times with "Bhajan X: " prefix')
-    parser.add_argument('-yt', '--youtube', type=str, help='YouTube video ID to generate URLs for each start time')
 
     args = parser.parse_args()
 
@@ -60,6 +77,11 @@ if __name__ == "__main__":
     print(f"Minimum time difference between start times: {args.time_diff} seconds")
     print(f"Pretty print start times: {'Yes' if args.pretty_print else 'No'}")
     print(f"YouTube video ID: {args.youtube if args.youtube else 'Not provided'}")
+
+    if args.from_youtube:
+        print(f"[bold cyan]Downloading audio from YouTube video ID: {args.youtube}[/bold cyan]")
+        download_audio_from_youtube(args.youtube)
+        args.file = f"{args.youtube}.mp3"
 
     percentile_values, silence_starts = analyze_audio(args.file, args.duration, args.percentile, args.time_diff)
 

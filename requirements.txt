@@ -28,3 +28,4 @@ threadpoolctl==3.5.0
 timedelta==2020.12.3
 typing_extensions==4.12.2
 urllib3==2.2.2
+youtube-dl==2021.12.17
